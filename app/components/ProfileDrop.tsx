@@ -2,18 +2,27 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronDown, LogOut, User, Settings } from 'lucide-react';
-import { login, logout } from '../lib/auth';
-
-// import { useRouter } from 'next/router';
+import { logout } from '../lib/auth';
+import { getUserProfile } from '../lib/api';
 import { useRouter } from 'next/navigation';
-// 
+
+interface UserData {
+  _id: string;
+  username: string;
+  email: string;
+  role: string;
+}
+
 export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [user, setUser] = useState<UserData | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
+    // Close dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !(dropdownRef.current as any).contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -21,14 +30,46 @@ export default function ProfileDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-    
-        const router = useRouter();
-    
-        const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
-            e.preventDefault();
-            login('demo-token'); // Store dummy token
-            router.push('/dashboard'); // Redirect
+  useEffect(() => {
+    // Prefer decoding local JWT for instant name; fall back to fetch
+    const tryDecodeToken = () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return false;
+        const parts = token.split(".");
+        if (parts.length !== 3) return false;
+        const payload = JSON.parse(atob(parts[1]));
+        const decodedUser: UserData = {
+          _id: payload.id || payload._id || "",
+          username: payload.username || "",
+          email: payload.email || "",
+          role: payload.role || "",
         };
+        if (decodedUser.username) {
+          setUser(decodedUser);
+          return true;
+        }
+      } catch (err) {
+        // noop, fall back to network
+      }
+      return false;
+    };
+
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const data = await getUserProfile(token);
+        setUser(data);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+
+    if (!tryDecodeToken()) {
+      fetchUser();
+    }
+  }, []);
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
@@ -37,7 +78,7 @@ export default function ProfileDropdown() {
         className="flex items-center gap-2 text-gray-700 dark:text-white text-base sm:text-lg font-medium px-4 py-2 rounded hover:text-indigo-500 focus:outline-none"
       >
         <User />
-        <span className="hidden sm:inline text-nowrap">My Profile</span>
+        <span className="hidden sm:inline text-nowrap">{user ? user.username : "Loading..."}</span>
         <ChevronDown
           className={`transition-transform duration-300 ${isOpen ? "rotate-180" : "rotate-0"}`}
         />
@@ -51,8 +92,12 @@ export default function ProfileDropdown() {
               <span className="flex px-5 py-3.5 items-center gap-3">
                 <User size={44} />
                 <div>
-                  <span className="block font-medium text-gray-800 dark:text-white">My Profile</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">test@example.com</span>
+                  <span className="block font-medium text-gray-800 dark:text-white">
+                    {user ? user.username : "Guest"}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {user ? user.email : ""}
+                  </span>
                 </div>
               </span>
             </li>
@@ -70,7 +115,7 @@ export default function ProfileDropdown() {
             {/* Settings */}
             <li className="py-2 px-2">
               <Link
-                href="#"
+                href="/dashboard/settings"
                 className="block px-2.5 py-2 flex gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
               >
                 <Settings /> <span>Settings</span>
@@ -81,15 +126,15 @@ export default function ProfileDropdown() {
 
             {/* Logout */}
             <li className="p-2">
-      <button
-        onClick={() => {
-          logout();
-          router.push('/Authentication/signin');
-        }}
-        className="bg-red-500 text-white px-4 py-2 rounded"
-      >
-        Logout
-      </button>
+              <button
+                onClick={() => {
+                  logout();
+                  router.push('/Authentication/signin');
+                }}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Logout
+              </button>
             </li>
           </ul>
         </div>

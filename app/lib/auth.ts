@@ -1,17 +1,20 @@
-
 // lib/auth.ts
-export function isAuthenticated(): boolean {
-  // Mock check (replace with cookie/session check)
-  if (typeof window !== "undefined") {
-    return !!localStorage.getItem("auth-token");
-  }
-  return false;
-}
-
 export function login(token: string) {
-  localStorage.setItem("auth-token", token);
+	localStorage.setItem("token", token);
+	// Set cookie for middleware (1 week)
+	document.cookie = `auth-token=${token}; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 }
 
 export function logout() {
-  localStorage.removeItem("auth-token");
+	localStorage.removeItem("token");
+	// Clear cookie
+	document.cookie = `auth-token=; Path=/; Max-Age=0; SameSite=Lax`;
+}
+
+export function getToken() {
+	return localStorage.getItem("token");
+}
+
+export function isAuthenticated() {
+	return !!localStorage.getItem("token");
 }
