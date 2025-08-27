@@ -1,6 +1,6 @@
 // lib/api.ts
 
-const API_BASE_URL = 'https://stockmarket-backend-npnv.onrender.com/';
+const API_BASE_URL = 'https://stockmarket-backend-npnv.onrender.com';
 
 export async function signin(email: string, password: string) {
   console.log("📤 API: Sending signin request to:", `${API_BASE_URL}/auth/login`);
