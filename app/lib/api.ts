@@ -3,7 +3,7 @@
 const API_BASE_URL = 'https://stockmarket-backend-npnv.onrender.com';
 
 export async function signin(email: string, password: string) {
-  console.log("📤 API: Sending signin request to:", `${API_BASE_URL}/auth/login`);
+  console.log("📤 API: Sending signin request to:", `${API_BASE_URL}/api/auth/login`);
   console.log("📤 API: Request body:", { email, password });
   
   try {
@@ -30,7 +30,7 @@ export async function signin(email: string, password: string) {
 }
 
 export async function signup({ username, email, password }: { username: string; email: string; password: string; }) {
-  console.log("📤 API: Sending signup request to:", `${API_BASE_URL}/auth/register`);
+  console.log("📤 API: Sending signup request to:", `${API_BASE_URL}/api/auth/register`);
   console.log("📤 API: Request body:", { username, email, password });
   
   try {
