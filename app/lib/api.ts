@@ -30,10 +30,11 @@ export async function signin(email: string, password: string) {
 }
 
 export async function signup({ username, email, password }: { username: string; email: string; password: string; }) {
-  console.log("📤 API: Sending signup request to:", `${API_BASE_URL}/api/auth/register`);
-
+  console.log("📤 API: Sending signup request to:", `${API_BASE_URL}/auth/register`);
+  console.log("📤 API: Request body:", { username, email, password });
+  
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {  // <-- must have /api/auth
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -51,12 +52,6 @@ export async function signup({ username, email, password }: { username: string; 
     }
 
     return data; // { message, user }
-  } catch (error) {
-    console.error("❌ API: Fetch error:", error);
-    throw error;
-  }
-}
-
   } catch (error) {
     console.error("❌ API: Fetch error:", error);
     throw error;
