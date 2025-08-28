@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { signin } from "../../lib/api";
 import { useRouter } from "next/navigation";
 
@@ -11,61 +11,49 @@ export default function SigninPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Clear any existing localStorage tokens on component mount
   useEffect(() => {
+    // clear old token from localStorage (cleanup, no longer needed)
     localStorage.removeItem("token");
-    console.log("🧹 Cleared localStorage token");
-    
-    // Check if there are any remaining tokens
-    const remainingToken = localStorage.getItem("token");
-    console.log("🔍 Remaining localStorage token:", remainingToken);
   }, []);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  console.log("🚀 handleSubmit fired", { email, password });
-  
-  // 🔒 Prevent empty submissions
-  if (!email.trim() || !password.trim()) {
-    setError("Please enter both email and password");
-    console.log("❌ Empty fields detected");
-    return;
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    setError("Please enter a valid email address");
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setError("");
-
-    console.log("📤 Sending signin request with:", { email, password });
-    const data = await signin(email, password);
-
-    // Ensure token is returned before redirect
-    if (data && data.token) {
-      console.log("✅ Login successful, token received:", data.token);
-
-      // Save token in localStorage for client-side access
-      localStorage.setItem("token", data.token);
-
-      // ✅ Redirect only when login succeeded
-      router.push("/dashboard");
-    } else {
-      console.warn("⚠️ Login failed, no token returned:", data);
-      setError("Invalid login response");
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter both email and password");
+      return;
     }
-  } catch (err: any) {
-    console.error("❌ Signin error:", err);
-    setError(err.message || "Signin failed");
-  } finally {
-    setLoading(false);
-  }
-};
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      console.log("📤 Sending signin request with:", { email, password });
+      const data = await signin(email, password); // backend sets cookie
+
+      if (data && data.message === "Login successful") {
+        console.log("✅ Login successful, cookies set by backend");
+
+        // 🚀 redirect to dashboard
+        startTransition(() => {
+          router.push("/dashboard");
+        });
+      } else {
+        setError("Invalid login response");
+      }
+    } catch (err: any) {
+      console.error("❌ Signin error:", err);
+      setError(err.message || "Signin failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -98,7 +86,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         <button
           type="submit"
           disabled={loading}
-          onClick={() => console.log("🔘 Button clicked, email:", email, "password:", password)}
           className={`w-full bg-red-500 hover:bg-red-600 text-white p-2 rounded transition ${
             loading ? "opacity-50 cursor-not-allowed" : ""
           }`}
@@ -107,26 +94,20 @@ const handleSubmit = async (e: React.FormEvent) => {
         </button>
 
         <p className="mt-4 text-sm text-center text-gray-500">
-          Don't have an account?{" "}
-          <a
-            href="/Authentication/signup"
-            className="text-red-500 hover:underline"
-          >
+          Don&apos;t have an account?{" "}
+          <a href="/Authentication/signup" className="text-red-500 hover:underline">
             Sign Up
           </a>
         </p>
-        
+
         <button
           type="button"
-          onClick={() => {
-            localStorage.removeItem("token");
-            // Call logout API to clear httpOnly cookies
-            fetch('http://localhost:5000/api/auth/logout', {
-              method: 'POST',
-              credentials: 'include'
-            }).then(() => {
-              window.location.reload();
+          onClick={async () => {
+            await fetch("http://localhost:5000/api/auth/logout", {
+              method: "POST",
+              credentials: "include",
             });
+            window.location.reload();
           }}
           className="mt-2 w-full bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition"
         >
