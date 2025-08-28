@@ -7,7 +7,7 @@ export async function signin(email: string, password: string) {
   console.log("📤 API: Request body:", { email, password });
   
   try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -30,11 +30,11 @@ export async function signin(email: string, password: string) {
 }
 
 export async function signup({ username, email, password }: { username: string; email: string; password: string; }) {
-  console.log("📤 API: Sending signup request to:", `${API_BASE_URL}/auth/register`);
+  console.log("📤 API: Sending signup request to:", `${API_BASE_URL}/api/auth/register`);
   console.log("📤 API: Request body:", { username, email, password });
   
   try {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -59,7 +59,7 @@ export async function signup({ username, email, password }: { username: string; 
 }
 
 export async function verifyToken(token: string) {
-  const res = await fetch(`${API_BASE_URL}/auth/verify`, {
+  const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
     method: "POST",
     headers: { 
       "Content-Type": "application/json",
@@ -78,7 +78,7 @@ export async function verifyToken(token: string) {
 }
 
 export async function getUserProfile(token: string) {
-  const res = await fetch(`${API_BASE_URL}/auth/me`, {
+  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
     method: "GET",
     headers: { 
       "Content-Type": "application/json",
@@ -97,7 +97,7 @@ export async function getUserProfile(token: string) {
 }
 
 export async function logout(token: string) {
-  const res = await fetch(`${API_BASE_URL}/auth/logout`, {
+  const res = await fetch(`${API_BASE_URL}/api/auth/logout`, {
     method: "POST",
     headers: { 
       "Content-Type": "application/json",
