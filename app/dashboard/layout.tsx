@@ -2,37 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { isAuthenticated } from "../lib/auth";
 import Sidebar from "@/app/components/Sidebar";
 import Header from "@/app/components/Header";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setIsClient(true); // ✅ only true after hydration
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (isClient) {
-      const token = localStorage.getItem("token");
-      console.log("🔍 DashboardLayout - token:", token);
-
-      if (!token) {
-        router.replace("/Authentication/signin");
-      } else {
-        setAuthenticated(true);
-      }
+    if (hydrated && !isAuthenticated()) {
+      router.replace("/Authentication/signin");
     }
-  }, [isClient, router]);
+  }, [hydrated, router]);
 
-  if (!isClient) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  if (!authenticated) {
-    return <div className="flex items-center justify-center h-screen">Redirecting...</div>;
+  if (!hydrated) {
+    return null; // or loading spinner
   }
 
   return (
