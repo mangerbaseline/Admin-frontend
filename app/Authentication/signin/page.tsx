@@ -42,7 +42,9 @@ export default function SigninPage() {
 
         // 🚀 redirect to dashboard
         startTransition(() => {
-          router.push("/dashboard");
+          // router.push("/dashboard");
+          window.location.href = "/dashboard";
+
         });
       } else {
         setError("Invalid login response");
