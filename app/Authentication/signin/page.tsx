@@ -46,6 +46,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     console.log("📤 Sending signin request with:", { email, password });
     const data = await signin(email, password);
 
+      router.push("/dashboard");
     // Ensure token is returned before redirect
     if (data && data.token) {
       console.log("✅ Login successful, token received:", data.token);
@@ -54,7 +55,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       localStorage.setItem("token", data.token);
 
       // ✅ Redirect only when login succeeded
-      router.push("/dashboard");
     } else {
       console.warn("⚠️ Login failed, no token returned:", data);
       setError("Invalid login response");
