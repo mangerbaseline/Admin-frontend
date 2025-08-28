@@ -2,24 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated } from "../lib/auth";
 import Sidebar from "@/app/components/Sidebar";
 import Header from "@/app/components/Header";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [authChecked, setAuthChecked] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push("/Authentication/signin");
-    } else {
-      setAuthChecked(true);
-    }
-  }, [router]);
+    setIsClient(true); // ✅ only true after hydration
+  }, []);
 
-  if (!authChecked) {
-    return <div className="flex items-center justify-center h-screen">Checking authentication...</div>;
+  useEffect(() => {
+    if (isClient) {
+      const token = localStorage.getItem("token");
+      console.log("🔍 DashboardLayout - token:", token);
+
+      if (!token) {
+        router.replace("/Authentication/signin");
+      } else {
+        setAuthenticated(true);
+      }
+    }
+  }, [isClient, router]);
+
+  if (!isClient) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (!authenticated) {
+    return <div className="flex items-center justify-center h-screen">Redirecting...</div>;
   }
 
   return (
